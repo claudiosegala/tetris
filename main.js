@@ -1,5 +1,5 @@
 // return if something is defined
-const def     = x => typeof x !== undefined;
+const def     = x => typeof x !== 'undefined'
 
 // return if something is not defined
 const undef   = x => !def(x);
@@ -77,10 +77,7 @@ const flow = (...args) => init => reduce(args, (memo, fn) => fn(memo), init);
 const compose = (...args) => flow(...reverse(args))
 
 // Current State of the game
-let state = {
-	score: 0,
-	board: initBoard()
-};
+let state;
 
 // Const
 const LEFT  = { x: -1, y:  0 };
@@ -98,38 +95,47 @@ const score  = document.getElementById('score');
 const canvas = document.getElementById('board');
 const cntxt  = canvas.getContext('2d');
 
-function initBoard () {
+const initState = () => {
+	return {
+		score: 0,
+		board: initBoard()
+	};
+};
+
+const initBoard = () => {
 	var row = new Array (game.rows);
-
 	return map(row, x => x = new Array (game.columns));
-}
+};
 
-function changeState (event) {
+const changeState = (event) => {
 	switch (event.key) {
 		case 'a': case 'A': case 'ArrowLeft':
-			nextState(LEFT) 
+			nextState(LEFT);
+			console.log('LEFT');
 			break;
 
 		case 's': case 'S': case 'ArrowDown':
-			nextState(DOWN) 
+			nextState(DOWN);
+			console.log('DOWN');
 			break;
 
 		case 'd': case 'D': case 'ArrowRight':
-			nextState(RIGHT) 
+			nextState(RIGHT);
+			console.log('RIGH');
 			break;
 
 		case 'w': case 'W': case 'ArrowUp':
-			nextState(TURN) 
+			nextState(TURN);
+			console.log('TURN');
 			break;
 	}
 }
 
-function tetris () {
+const tetris = () => {
+	state = initState();
 
 	// Start listening for keystrokes
 	window.addEventListener('keydown', changeState);
-
-	//
 }
 
 tetris();
