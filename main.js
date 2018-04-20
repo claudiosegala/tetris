@@ -1,22 +1,80 @@
-// Functional Stuff
-const adjust    = n => f => xs => mapi(x => i => i == n ? f(x) : x)(xs)
-const dropFirst = xs => xs.slice(1)
-const dropLast  = xs => xs.slice(0, xs.length - 1)
-const id        = x => x
-const k         = x => y => x
-const map       = f => xs => xs.map(f)
-const mapi      = f => xs => xs.map((x, i) => f(x)(i))
-const merge     = o1 => o2 => Object.assign({}, o1, o2)
-const mod       = x => y => ((y % x) + x) % x // http://bit.ly/2oF4mQ7
-const objOf     = k => v => { var o = {}; o[k] = v; return o }
-const pipe      = (...fns) => x => [...fns].reduce((acc, f) => f(acc), x)
-const prop      = k => o => o[k]
-const range     = n => m => Array.apply(null, Array(m - n)).map((_, i) => n + i)
-const rep       = c => n => map(k(c))(range(0)(n))
-const rnd       = min => max => Math.floor(Math.random() * max) + min
-const spec      = o => x => Object.keys(o)
-  .map(k => objOf(k)(o[k](x)))
-  .reduce((acc, o) => Object.assign(acc, o))
+// return if something is defined
+const def     = x => typeof x !== undefined;
+
+// return if something is not defined
+const undef   = x => !def(x);
+
+// return the head of the array
+const head    = ([x]) => x;
+
+// return the tail of the array
+const tail    = ([x, ...xs]) => xs;
+
+// return a new array with the results of calling a provided function on every element
+const map     = ([x, ...xs], fn) => def(x) ? [fn(x), ...map(xs, fn)] : [];
+
+// return a new array with all elements that pass the test implemented by the provided function
+const filter  = ([x, ...xs], fn) => def(x) 
+	? fn(x)
+		? [x, ...filter(xs, fn)]
+		: [...filter(xs, fn)]
+	: [];
+
+// return a new array with all elements that fails the test implemented by the provided function
+const reject  = ([x, ...xs], fn) => def(x)  
+	? fn(x)
+		? [...filter(xs, fn)]
+		: [x, ...filter(xs, fn)]
+	: [];
+
+// return if the object is an array
+const isArray = xs => Array.isArray(xs)
+
+// make a copy of the array
+const copy    = xs => [...xs];
+
+// find the lenght of the array
+const len     = ([x, ...xs]) => def(x) ? 1 + len(xs) : 0;
+
+// reverse the array
+const rev     = ([x, ...xs]) => def(x) ? [...rev(xs), x] : [];
+
+// create a new array with the first n elements
+const first   = ([x, ...xs], n = 1) => def(x) && n ? [x, ...first(xs, n - 1)] : [];
+
+// create a new array with the last n elements
+const last    = (xs, n = 1) => rev(first(rev(xs), n));
+
+// insert in a array in the index an element
+const slice   = ([x, ...xs], i, y, curr = 0) => def(x)
+  ? curr === i
+    ? [y, x, ...slice(xs, i, y, curr + 1)]
+    : [x, ...slice(xs, i, y, curr + 1)]
+  : [];
+
+// split the array in two, one passing the condition and the rest
+const divide  = (xs, fn) => [filter(xs, fn), reject(xs, fn)];
+
+// make an matrix an array
+const flatten = ([x, ...xs]) => def(x)
+	? isArray(x) 
+		? [...flatten(x), ...flatten(xs)] 
+		: [x, ...flatten(xs)]
+	: [];
+
+// Applies a function against an accumulator and each element in the array (from left to right) to reduce it to a single value
+const reduce  = ([x, ...xs], fn, acc, i = 0) => def(x)
+	? reduce(xs, fn, fn(acc, x, i), i + 1) 
+	: acc;
+
+// Extract property value from array. Useful when combined with the map function
+const pluck   = (key, object) => object[key];
+
+// Each function consumes the return value of the function that came before
+const flow = (...args) => init => reduce(args, (memo, fn) => fn(memo), init);
+
+// Reverse of flow ex: compose(tax, discount, getPrice) -> (x => tax(discount(getPrice(x))))
+const compose = (...args) => flow(...reverse(args))
 
 // Current State of the game
 let state = {
@@ -31,8 +89,8 @@ const RIGHT = { x:  1, y:  0 };
 const TURN  = {};
 
 const game  = {
-	rows:    16,
-	columns: 32,
+	rows:    32,
+	columns: 16,
 }; 
 
 // html
@@ -41,17 +99,9 @@ const canvas = document.getElementById('board');
 const cntxt  = canvas.getContext('2d');
 
 function initBoard () {
-	var matrix = new Array (9);
-	fp.
-	matrix.
-	return {
-		score: 0,
-		board: {
-			rows_n:    16,
-			columns_n: 32,
-			rows: [],
-		}
-	};
+	var row = new Array (game.rows);
+
+	return map(row, x => x = new Array (game.columns));
 }
 
 function changeState (event) {
