@@ -79,48 +79,24 @@ const compose = (...args) => flow(...reverse(args))
 // Util
 const rnd = Math.random;
 
+const div = (x, y) => Math.floor(x/y);
+
 const sumVector = ([x, ...xs], [y, ...ys]) => def(x) && def(y)
 	? [x + y, ...sumVector(xs, ys)]
 	: [];
 
-// View
-const score  = document.getElementById('score');
-const canvas = document.getElementById('board');
-const ctx    = canvas.getContext('2d');
-
-const updateScore = () => score.textContent = (state.score + 'pt');
-
-const drawFrame = () => {
-	// draw the current piece
-
-	// var nextRow    = [0, 0, 40, 40]
-	// var nextColumn = [40, 40, 0, 0]
-	// var position   = [5, 5, 35, 35];
-
-	// for (var i = 0; i <= game.rows; i++) {
-	// 	for (var j = 0; j <= game.columns; j++) {
-
-	// 		position = sumVector(position, nextColumn);
-	// 	}
-	// 	position = sumVector(position, nextRow);
-	// }
-
-	ctx.fillStyle = "rgb(127, 255, 127)";
-	ctx.fillRect(5, 5, 35, 35);
-};
-
 // Model
-
 let state; // the current state of the game
 
 const game  = {
-	rows:    32,
-	columns: 16,
+	rows:     16,
+	columns:   8,
+	size:    127
 }; 
 
-const LEFT  = { x: -1, y:  0 };
-const DOWN  = { x:  0, y: -1 };
-const RIGHT = { x:  1, y:  0 };
+const LEFT  = { x:  0, y: -1 };
+const DOWN  = { x:  1, y:  0 };
+const RIGHT = { x:  0, y:  1 };
 const TURN  = {};
 
 const pieceTypes = [
@@ -259,7 +235,63 @@ const initState = () => {
 	};
 };
 
+// View
+const score  = document.getElementById('score');
+const canvas = document.getElementById('board');
+const ctx    = canvas.getContext('2d');
+
+const updateScore = () => score.textContent = (state.score + 'pt');
+
+const newPos = (i, j) => [5 + 40*j, 5 + 40*i, 35, 35];
+
+const inLimits = (i, j) => (i >= 0 && j >= 0 && i < game.rows && j < game.columns);
+
+const fill = (a, fn, n, max) => {
+	if (n >= 0) {
+		const i = n % max;
+		const j = div(n, max);
+
+		if (fn(a[n])) {
+			ctx.fillRect(...newPos(i, j));
+		}
+
+		fill(a, fn, n-1, max);
+	}
+};
+
+const drawFrame = () => {
+	const board = flatten(state.board);
+
+	// clean board
+	ctx.fillStyle = "rgb(51, 51, 51)";
+	fill(board, x => true, game.size, game.rows);
+
+	// draw the dead pieces
+	ctx.fillStyle = "rgb(255, 255, 255)";
+	fill(board, x => x, game.size, game.rows);
+
+	// draw current pieces
+	var i = state.currentPiece.position.x;
+	var j = state.currentPiece.position.y;
+	ctx.fillStyle = "rgb(127, 255, 127)";
+	ctx.fillRect(...newPos(i, j));
+};
+
 // Controller
+const nextState = (action) => {
+	console.log(state.currentPiece.position);
+	if (action == TURN) {
+		state.currentPiece.rotation = (state.currentPiece.rotation + 1) % len(pieceTypes);
+	} else {
+		var x = state.currentPiece.position.x + action.x;
+		var y = state.currentPiece.position.y + action.y;
+		
+		if (inLimits(x, y)) {
+			state.currentPiece.position = { x: x, y: y };
+		}
+	}
+};
+
 const changeState = (event) => {
 	switch (event.key) {
 		case 'a': case 'A': case 'ArrowLeft':
@@ -280,10 +312,9 @@ const changeState = (event) => {
 	}
 }
 
-const tetris = () => {
-	// init the state of the game
-	state = initState();
+const listenKeys = (fn) => window.addEventListener('keydown', fn);
 
+const refresh = () => {
 	// invert y axis of canvas
 	// ctx.transform(1, 0, 0, -1, 0, canvas.height)
 
@@ -292,9 +323,22 @@ const tetris = () => {
 
 	// draw the init game
 	drawFrame();
+};
+
+const gravity = () => nextState(DOWN);
+
+const tetris = () => {
+	// init the state of the game
+	state = initState();
 
 	// Start listening for keystrokes
 	window.addEventListener('keydown', changeState);
+
+	// Start refreshing the canvas every 100ms
+	const refreshId = window.setInterval(refresh, 100);
+
+	// Current Piece goes down every 1s
+	const gravityId = window.setInterval(gravity, 1000);
 }
 
 tetris();
