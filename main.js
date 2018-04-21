@@ -76,63 +76,222 @@ const flow = (...args) => init => reduce(args, (memo, fn) => fn(memo), init);
 // Reverse of flow ex: compose(tax, discount, getPrice) -> (x => tax(discount(getPrice(x))))
 const compose = (...args) => flow(...reverse(args))
 
-// Current State of the game
-let state;
+// Util
+const rnd = Math.random;
 
-// Const
-const LEFT  = { x: -1, y:  0 };
-const DOWN  = { x:  0, y: -1 };
-const RIGHT = { x:  1, y:  0 };
-const TURN  = {};
+const sumVector = ([x, ...xs], [y, ...ys]) => def(x) && def(y)
+	? [x + y, ...sumVector(xs, ys)]
+	: [];
+
+// View
+const score  = document.getElementById('score');
+const canvas = document.getElementById('board');
+const ctx    = canvas.getContext('2d');
+
+const updateScore = () => score.textContent = (state.score + 'pt');
+
+const drawFrame = () => {
+	// draw the current piece
+
+	// var nextRow    = [0, 0, 40, 40]
+	// var nextColumn = [40, 40, 0, 0]
+	// var position   = [5, 5, 35, 35];
+
+	// for (var i = 0; i <= game.rows; i++) {
+	// 	for (var j = 0; j <= game.columns; j++) {
+
+	// 		position = sumVector(position, nextColumn);
+	// 	}
+	// 	position = sumVector(position, nextRow);
+	// }
+
+	ctx.fillStyle = "rgb(127, 255, 127)";
+	ctx.fillRect(5, 5, 35, 35);
+};
+
+// Model
+
+let state; // the current state of the game
 
 const game  = {
 	rows:    32,
 	columns: 16,
 }; 
 
-// html
-const score  = document.getElementById('score');
-const canvas = document.getElementById('board');
-const cntxt  = canvas.getContext('2d');
+const LEFT  = { x: -1, y:  0 };
+const DOWN  = { x:  0, y: -1 };
+const RIGHT = { x:  1, y:  0 };
+const TURN  = {};
+
+const pieceTypes = [
+	[
+		[
+			[0, 0, 1, 0],
+			[0, 1, 1, 1],
+			[0, 0, 0, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 0, 1, 0],
+			[0, 0, 1, 1],
+			[0, 0, 1, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 0, 0, 0],
+			[0, 1, 1, 1],
+			[0, 0, 1, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 0, 1, 0],
+			[0, 1, 1, 0],
+			[0, 0, 1, 0],
+			[0, 0, 0, 0]
+		]
+	], [
+		[
+			[0, 1, 1, 0],
+			[0, 1, 1, 0],
+			[0, 0, 0, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 1, 1, 0],
+			[0, 1, 1, 0],
+			[0, 0, 0, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 1, 1, 0],
+			[0, 1, 1, 0],
+			[0, 0, 0, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 1, 1, 0],
+			[0, 1, 1, 0],
+			[0, 0, 0, 0],
+			[0, 0, 0, 0]
+		],
+	], [
+		[
+			[0, 1, 0, 0],
+			[0, 1, 1, 0],
+			[0, 0, 1, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 0, 0, 0],
+			[0, 0, 1, 1],
+			[0, 1, 1, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 1, 0, 0],
+			[0, 1, 1, 0],
+			[0, 0, 1, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 0, 0, 0],
+			[0, 0, 1, 1],
+			[0, 1, 1, 0],
+			[0, 0, 0, 0]
+		]
+	], [
+		[
+			[0, 0, 1, 0],
+			[0, 1, 1, 0],
+			[0, 1, 0, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 0, 0, 0],
+			[0, 1, 1, 0],
+			[0, 0, 1, 1],
+			[0, 0, 0, 0]
+		],[
+			[0, 0, 1, 0],
+			[0, 1, 1, 0],
+			[0, 1, 0, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 0, 0, 0],
+			[0, 1, 1, 0],
+			[0, 0, 1, 1],
+			[0, 0, 0, 0]
+		]
+	], [
+		[
+			[1, 1, 1, 1],
+			[0, 0, 0, 0],
+			[0, 0, 0, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 1, 0, 0],
+			[0, 1, 0, 0],
+			[0, 1, 0, 0],
+			[0, 1, 0, 0]
+		],[
+			[1, 1, 1, 1],
+			[0, 0, 0, 0],
+			[0, 0, 0, 0],
+			[0, 0, 0, 0]
+		],[
+			[0, 1, 0, 0],
+			[0, 1, 0, 0],
+			[0, 1, 0, 0],
+			[0, 1, 0, 0]
+		]
+	]
+];
+
+const nextPiece = () => {
+	return {
+		position: { x: 2, y: 2 },
+		rotation: 0,
+		type: rnd() % len(pieceTypes)
+	};
+};
+
+// TODO: not functional enough
+const matrix = (n, m) => {
+	var row = new Array (n);
+	return map(row, x => x = new Array (m));
+};
 
 const initState = () => {
 	return {
 		score: 0,
-		board: initBoard()
+		board: matrix(game.rows, game.columns),
+		currentPiece: nextPiece()
 	};
 };
 
-const initBoard = () => {
-	var row = new Array (game.rows);
-	return map(row, x => x = new Array (game.columns));
-};
-
+// Controller
 const changeState = (event) => {
 	switch (event.key) {
 		case 'a': case 'A': case 'ArrowLeft':
 			nextState(LEFT);
-			console.log('LEFT');
 			break;
 
 		case 's': case 'S': case 'ArrowDown':
 			nextState(DOWN);
-			console.log('DOWN');
 			break;
 
 		case 'd': case 'D': case 'ArrowRight':
 			nextState(RIGHT);
-			console.log('RIGH');
 			break;
 
 		case 'w': case 'W': case 'ArrowUp':
 			nextState(TURN);
-			console.log('TURN');
 			break;
 	}
 }
 
 const tetris = () => {
+	// init the state of the game
 	state = initState();
+
+	// invert y axis of canvas
+	// ctx.transform(1, 0, 0, -1, 0, canvas.height)
+
+	// print the score of the game
+	updateScore();
+
+	// draw the init game
+	drawFrame();
 
 	// Start listening for keystrokes
 	window.addEventListener('keydown', changeState);
