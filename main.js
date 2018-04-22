@@ -108,26 +108,25 @@ const updateScore = () => score.textContent = (state.score + 'pt')
 // Controller
 const inLimits = (i, j) => (i >= 0 && j >= 0 && i < game.rows && j < game.cols)
 
-const colision = (i, j) => (inLimits(i, j)) //&& !hitBlock(i, j))
-
 const nextState = (act) => {
 	const p = state.currentPiece;
 
 	if (act == TURN) {
 		state.currentPiece.rotation = (p.rotation + 1) % len(pieceTypes[p.type])
 	} else {
-		const piece     = pieceTypes[p.type][p.rotation]
-		const relPos    = map(piece, adjIdx(p.x, p.y))
-		const newRelPos = map(piece, adjIdx(p.x + act.x, p.y + act.y))
+		const newX   = p.x + act.x
+		const newY   = p.y + act.y
+		const piece  = pieceTypes[p.type][p.rotation]
+		const relPos = map(piece, adjIdx(newX, newY))
 
-		const n         = len(newRelPos)
-		const m         = len(filter(newRelPos, r => colision(r.x, r.y)))
+		const n      = len(relPos)
+		const m      = len(filter(relPos, k => inLimits(k.x, k.y)))
+
+		const 
 
 		if (n == m) {
-			state.currentPiece.x = i
-			state.currentPiece.y = j
-		} else {
-			afterColision(state.board, relPos)
+			state.currentPiece.x = p.x + act.x
+			state.currentPiece.y = p.y + act.y
 		}
 	}
 }
