@@ -16,23 +16,31 @@ const TURN  = {}
 // This is an array of relative positions in the pivo
 const pieceTypes = [
 	[
-		[[ 0,  0], [ 0, -1], [-1,  0], [ 1,  0]],
-		[[ 0,  0], [ 0, -1], [ 0,  1], [ 1,  0]], //  o
-		[[ 0,  0], [-1,  0], [ 0,  1], [ 1,  0]], // ooo
-		[[ 0,  0], [ 0,  1], [ 0, -1], [-1,  0]]
+		[{x: 0,y: 0}, {x: 0, y:-1}, {x:-1, y: 0}, {x: 1, y: 0}],
+		[{x: 0,y: 0}, {x: 0, y:-1}, {x: 0, y: 1}, {x: 1, y: 0}], //  o
+		[{x: 0,y: 0}, {x:-1, y: 0}, {x: 0, y: 1}, {x: 1, y: 0}], // ooo
+		[{x: 0,y: 0}, {x: 0, y: 1}, {x: 0, y:-1}, {x:-1, y: 0}]
 	], [                                          // oo
-		[[ 0,  0], [ 1,  0], [ 1,  1], [ 0,  1]]  // oo
+		[{x: 0,y: 0}, {x: 1, y: 0}, {x: 1, y: 1}, {x: 0, y: 1}]  // oo
 	], [
-		[[ 0,  0], [-1,  0], [-1, -1], [ 0,  1]], // oo
-		[[ 0,  0], [ 1,  0], [-1,  1], [ 0,  1]]  //  oo
+		[{x: 0,y: 0}, {x:-1, y: 0}, {x:-1, y:-1}, {x: 0, y: 1}], // oo
+		[{x: 0,y: 0}, {x: 1, y: 0}, {x:-1, y: 1}, {x: 0, y: 1}]  //  oo
 	], [
-		[[ 0,  0], [ 1,  0], [ 0,  1], [ 1,  1]], //  oo
-		[[ 0,  0], [-1,  0], [ 0,  1], [-1, -1]]  // oo
+		[{x: 0,y: 0}, {x: 1, y: 0}, {x: 0, y: 1}, {x: 1, y: 1}], //  oo
+		[{x: 0,y: 0}, {x:-1, y: 0}, {x: 0, y: 1}, {x:-1, y:-1}]  // oo
 	], [
-		[[ 0,  0], [-1,  0], [ 1,  0], [ 2,  0]], // oooo
-		[[ 0,  0], [ 0, -1], [ 0,  1], [ 0,  2]]
+		[{x: 0,y: 0}, {x:-1, y: 0}, {x: 1, y: 0}, {x: 2, y: 0}], // oooo
+		[{x: 0,y: 0}, {x: 0, y:-1}, {x: 0, y: 1}, {x: 0, y: 2}]
 	]
 ]
+
+const array  = (m, v = false) => m
+	? [v, ...array(m-1, v)]
+	: []
+
+const matrix = (n, m, v = false) => n
+	? [array(m, v), ...matrix(n-1, m, v)]
+	: []
 
 const nextPiece = () => {
 	return {
@@ -41,12 +49,6 @@ const nextPiece = () => {
 		rotation: 0,
 		type:     rnd(len(pieceTypes))
 	}
-}
-
-// TODO: not functional enough
-const matrix = (n, m) => {
-	var row = new Array (n)
-	return map(row, x => x = new Array (m))
 }
 
 const initState = () => {
@@ -66,8 +68,8 @@ const newPos = (i, j) => [5 + 40*j, 5 + 40*i, 35, 35]
 
 const fillBoard = (a, fn, n, max) => {
 	if (n >= 0) {
-		const i = n % max
-		const j = div(n, max)
+		const i = div(n, max)
+		const j = n % max
 
 		if (fn(a[n])) {
 			ctx.fillRect(...newPos(i, j))
@@ -78,7 +80,12 @@ const fillBoard = (a, fn, n, max) => {
 }
 
 // return an object with coordinates (x, y) adjusted for a base (i, j)
-const adjIdx = (i, j) => k => { return { x: k[0] + i, y: k[1] + j} }
+const adjIdx = (i, j) => k => { 
+	return { 
+		x: k.x + i, 
+		y: k.y + j
+	} 
+}
 
 const fillCurPiece = (p) => {
 	const piece  = pieceTypes[p.type][p.rotation]
@@ -92,11 +99,11 @@ const drawFrame = () => {
 
 	// clean board
 	ctx.fillStyle = "rgb(51, 51, 51)"
-	fillBoard(board, x => true, game.size, game.rows)
+	fillBoard(board, x => true, game.size, game.cols)
 
 	// draw the dead pieces
 	ctx.fillStyle = "rgb(255, 255, 255)"
-	fillBoard(board, x => x, game.size, game.rows)
+	fillBoard(board, x => x, game.size, game.cols)
 
 	// draw current pieces
 	ctx.fillStyle = "rgb(127, 255, 127)"
@@ -106,7 +113,11 @@ const drawFrame = () => {
 const updateScore = () => score.textContent = (state.score + 'pt')
 
 // Controller
-const inLimits = (i, j) => (i >= 0 && j >= 0 && i < game.rows && j < game.cols)
+const hitWall   = (i, j) => (j < 0 || j >= game.cols)
+const hitFloor  = (i, j) => (i < 0 || i >= game.rows)
+const inLimits  = (i, j) => (!hitWall && !hitFloor)
+const hitBlock  = (i, j) => (inLimits(i, j) && state.board[i][j])
+const killPiece = (i, j) => (state.board[i][j] = true)
 
 const nextState = (act) => {
 	const p = state.currentPiece;
@@ -117,16 +128,24 @@ const nextState = (act) => {
 		const newX   = p.x + act.x
 		const newY   = p.y + act.y
 		const piece  = pieceTypes[p.type][p.rotation]
-		const relPos = map(piece, adjIdx(newX, newY))
+		const curPos = map(piece, adjIdx(p.x, p.y))
+		const nxtPos = map(piece, adjIdx(newX, newY))
 
-		const n      = len(relPos)
-		const m      = len(filter(relPos, k => inLimits(k.x, k.y)))
+		const hWall  = len(filter(nxtPos, k => hitWall(k.x, k.y)))
+		const hFloor = len(filter(nxtPos, k => hitFloor(k.x, k.y)))
+		const hBlock = len(filter(nxtPos, k => hitBlock(k.x, k.y)))
 
-		const 
+		// console.log(state.board)
+		// console.log(hWall)
+		// console.log(hFloor)
+		console.log(hBlock)
 
-		if (n == m) {
-			state.currentPiece.x = p.x + act.x
-			state.currentPiece.y = p.y + act.y
+		if (hFloor || hBlock) {
+			state.currentPiece = nextPiece()
+			each(curPos, k => killPiece(k.x, k.y))
+		} else if (!hWall){
+			state.currentPiece.x = newX
+			state.currentPiece.y = newY
 		}
 	}
 }
