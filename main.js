@@ -50,11 +50,11 @@ const score  = document.getElementById('score')
 const canvas = document.getElementById('board')
 const ctx    = canvas.getContext('2d')
 
-const updateScore = () => score.textContent = (state.score + 'pt')
+const updateScore = () => (score.textContent = (state.score + 'pt'))
 
-const newPos = (i, j) => [5 + 40*j, 5 + 40*i, 35, 35]
+const newPos = (i, j) => ([5 + 40*j, 5 + 40*i, 35, 35])
 
-const adjIdx = (i, j) => k => { return { x: k.x + i, y: k.y + j } }
+const adjIdx = (i, j) => k => ({ x: k.x + i, y: k.y + j })
 
 const fillBoard = (a, fn, n, max) => {
 	if (n >= 0) {
@@ -95,9 +95,25 @@ const drawFrame = () => {
 // Controller
 const hitWall   = (i, j) => (j < 0 || j >= game.cols)
 const hitFloor  = (i, j) => (i < 0 || i >= game.rows)
-const inLimits  = (i, j) => (!hitWall && !hitFloor)
-const hitBlock  = (i, j) => (inLimits(i, j) && state.board[i][j])
+const inLimits  = (i, j) => (j >= 0 && j < game.cols && i >= 0 && i < game.rows)
+const hitBlock  = (i, j, act) => (inLimits(i, j) && state.board[i][j])
 const killPiece = (i, j) => (state.board[i][j] = true)
+
+const endGame = () => (state.currentPiece.x == 2 && state.currentPiece.y == 2)
+
+const cleanBoard = () => {
+	// TODO: create a new board removing the array full true
+}
+
+const onColision  = (curPos) => {
+	if (!endGame()) {
+		each(curPos, k => killPiece(k.x, k.y))
+		cleanBoard()
+		state.currentPiece = nextPiece()	
+	} else {
+		window.location = "gameover.html"
+	}
+}
 
 const nextState = (act) => {
 	const p = state.currentPiece;
@@ -115,14 +131,8 @@ const nextState = (act) => {
 		const hFloor = len(filter(nxtPos, k => hitFloor(k.x, k.y)))
 		const hBlock = len(filter(nxtPos, k => hitBlock(k.x, k.y)))
 
-		// console.log(state.board)
-		// console.log(hWall)
-		// console.log(hFloor)
-		console.log(hBlock)
-
 		if (hFloor || hBlock) {
-			state.currentPiece = nextPiece()
-			each(curPos, k => killPiece(k.x, k.y))
+			onColision(curPos)
 		} else if (!hWall){
 			state.currentPiece.x = newX
 			state.currentPiece.y = newY

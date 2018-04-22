@@ -22,3 +22,8 @@ body {
 #board {
 	background:      #333333;
 }
+
+#gameOver {
+	color:           #dfdfdf;
+	font-size:       5em;
+}
