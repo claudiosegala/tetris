@@ -38,6 +38,16 @@ const reject  = ([x, ...xs], fn) => def(x)
 // return if the object is an array
 const isArray = xs => Array.isArray(xs)
 
+// return an array of size m and default content
+const array  = (m, v = false) => m
+	? [v, ...array(m-1, v)]
+	: []
+
+// return a matrix of size n x m and default content
+const matrix = (n, m, v = false) => n
+	? [array(m, v), ...matrix(n-1, m, v)]
+	: []
+
 // make a copy of the array
 const copy    = xs => [...xs]
 

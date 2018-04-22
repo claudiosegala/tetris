@@ -1,6 +1,4 @@
 // Model
-let state // the current state of the game
-
 const game  = {
 	rows:  16,
 	cols:   8,
@@ -12,35 +10,25 @@ const DOWN  = { x:  1, y:  0 }
 const RIGHT = { x:  0, y:  1 }
 const TURN  = {}
 
-// Consider the state.currentPiece the position of the pivo
-// This is an array of relative positions in the pivo
 const pieceTypes = [
 	[
-		[{x: 0,y: 0}, {x: 0, y:-1}, {x:-1, y: 0}, {x: 1, y: 0}],
-		[{x: 0,y: 0}, {x: 0, y:-1}, {x: 0, y: 1}, {x: 1, y: 0}], //  o
-		[{x: 0,y: 0}, {x:-1, y: 0}, {x: 0, y: 1}, {x: 1, y: 0}], // ooo
-		[{x: 0,y: 0}, {x: 0, y: 1}, {x: 0, y:-1}, {x:-1, y: 0}]
-	], [                                          // oo
-		[{x: 0,y: 0}, {x: 1, y: 0}, {x: 1, y: 1}, {x: 0, y: 1}]  // oo
+		[{ x: 0,y: 0} , { x: 0, y:-1 }, { x:-1, y: 0 }, { x: 1, y: 0 }],
+		[{ x: 0,y: 0} , { x: 0, y:-1 }, { x: 0, y: 1 }, { x: 1, y: 0 }], //  o
+		[{ x: 0,y: 0} , { x:-1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 0 }], // ooo
+		[{ x: 0,y: 0} , { x: 0, y: 1 }, { x: 0, y:-1 }, { x:-1, y: 0 }]
+	], [                                                                 // oo
+		[{ x: 0,y: 0} , { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }]  // oo
 	], [
-		[{x: 0,y: 0}, {x:-1, y: 0}, {x:-1, y:-1}, {x: 0, y: 1}], // oo
-		[{x: 0,y: 0}, {x: 1, y: 0}, {x:-1, y: 1}, {x: 0, y: 1}]  //  oo
+		[{ x: 0,y: 0} , { x:-1, y: 0 }, { x:-1, y:-1 }, { x: 0, y: 1 }], // oo
+		[{ x: 0,y: 0} , { x: 1, y: 0 }, { x:-1, y: 1 }, { x: 0, y: 1 }]  //  oo
 	], [
-		[{x: 0,y: 0}, {x: 1, y: 0}, {x: 0, y: 1}, {x: 1, y: 1}], //  oo
-		[{x: 0,y: 0}, {x:-1, y: 0}, {x: 0, y: 1}, {x:-1, y:-1}]  // oo
+		[{ x: 0,y: 0} , { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }], //  oo
+		[{ x: 0,y: 0} , { x:-1, y: 0 }, { x: 0, y: 1 }, { x:-1, y:-1 }]  // oo
 	], [
-		[{x: 0,y: 0}, {x:-1, y: 0}, {x: 1, y: 0}, {x: 2, y: 0}], // oooo
-		[{x: 0,y: 0}, {x: 0, y:-1}, {x: 0, y: 1}, {x: 0, y: 2}]
+		[{ x: 0,y: 0} , { x:-1, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }], // oooo
+		[{ x: 0,y: 0} , { x: 0, y:-1 }, { x: 0, y: 1 }, { x: 0, y: 2 }]
 	]
 ]
-
-const array  = (m, v = false) => m
-	? [v, ...array(m-1, v)]
-	: []
-
-const matrix = (n, m, v = false) => n
-	? [array(m, v), ...matrix(n-1, m, v)]
-	: []
 
 const nextPiece = () => {
 	return {
@@ -51,12 +39,10 @@ const nextPiece = () => {
 	}
 }
 
-const initState = () => {
-	return {
-		score: 0,
-		board: matrix(game.rows, game.cols),
-		currentPiece: nextPiece()
-	}
+let state = {
+	score: 0,
+	board: matrix(game.rows, game.cols),
+	currentPiece: nextPiece()
 }
 
 // View
@@ -64,7 +50,11 @@ const score  = document.getElementById('score')
 const canvas = document.getElementById('board')
 const ctx    = canvas.getContext('2d')
 
+const updateScore = () => score.textContent = (state.score + 'pt')
+
 const newPos = (i, j) => [5 + 40*j, 5 + 40*i, 35, 35]
+
+const adjIdx = (i, j) => k => { return { x: k.x + i, y: k.y + j } }
 
 const fillBoard = (a, fn, n, max) => {
 	if (n >= 0) {
@@ -77,14 +67,6 @@ const fillBoard = (a, fn, n, max) => {
 
 		fillBoard(a, fn, n-1, max)
 	}
-}
-
-// return an object with coordinates (x, y) adjusted for a base (i, j)
-const adjIdx = (i, j) => k => { 
-	return { 
-		x: k.x + i, 
-		y: k.y + j
-	} 
 }
 
 const fillCurPiece = (p) => {
@@ -109,8 +91,6 @@ const drawFrame = () => {
 	ctx.fillStyle = "rgb(127, 255, 127)"
 	fillCurPiece(state.currentPiece)
 }
-
-const updateScore = () => score.textContent = (state.score + 'pt')
 
 // Controller
 const hitWall   = (i, j) => (j < 0 || j >= game.cols)
@@ -159,25 +139,16 @@ const changeState = (event) => {
 	}
 }
 
-const refresh = () => {
-	updateScore() // print the score of the game
-	drawFrame()   // draw the init game
-}
-
-const gravity = () => nextState(DOWN)
-
-const tetris = () => {
-	// init the state of the game
-	state = initState()
-
+// Setup
+const init = () => {
 	// Start listening for keystrokes
 	window.addEventListener('keydown', changeState)
 
 	// Start refreshing the canvas every 100ms
-	const refreshId = window.setInterval(refresh, 100)
+	const refreshId = window.setInterval(drawFrame, 100)
 
 	// Current Piece goes down every 1s
-	const gravityId = window.setInterval(gravity, 1000)
+	const gravityId = window.setInterval(() => nextState(DOWN), 1000)
 }
 
-tetris()
+init()
