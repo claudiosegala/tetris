@@ -2,9 +2,9 @@
 let state // the current state of the game
 
 const game  = {
-	rows:     16,
+	rows:  16,
 	cols:   8,
-	size:    127
+	size: 127
 } 
 
 const LEFT  = { x:  0, y: -1 }
@@ -16,29 +16,30 @@ const TURN  = {}
 // This is an array of relative positions in the pivo
 const pieceTypes = [
 	[
-		[[ 0, -1], [-1,  0], [ 1,  0]],
-		[[ 0, -1], [ 0,  1], [ 1,  0]],   //  o
-		[[-1,  0], [ 0,  1], [ 1,  0]],   // ooo
-		[[ 0,  1], [ 0, -1], [-1,  0]]
-	], [                                // oo
-		[[ 1,  0], [ 1,  1], [ 0,  1]]  // oo
+		[[ 0,  0], [ 0, -1], [-1,  0], [ 1,  0]],
+		[[ 0,  0], [ 0, -1], [ 0,  1], [ 1,  0]], //  o
+		[[ 0,  0], [-1,  0], [ 0,  1], [ 1,  0]], // ooo
+		[[ 0,  0], [ 0,  1], [ 0, -1], [-1,  0]]
+	], [                                          // oo
+		[[ 0,  0], [ 1,  0], [ 1,  1], [ 0,  1]]  // oo
 	], [
-		[[-1,  0], [-1, -1], [ 0,  1]],  // oo
-		[[ 1,  0], [-1,  1], [ 0,  1]]   //  oo
+		[[ 0,  0], [-1,  0], [-1, -1], [ 0,  1]], // oo
+		[[ 0,  0], [ 1,  0], [-1,  1], [ 0,  1]]  //  oo
 	], [
-		[[ 1,  0], [ 0,  1], [ 1,  1]], //  oo
-		[[-1,  0], [ 0,  1], [-1, -1]]  // oo
+		[[ 0,  0], [ 1,  0], [ 0,  1], [ 1,  1]], //  oo
+		[[ 0,  0], [-1,  0], [ 0,  1], [-1, -1]]  // oo
 	], [
-		[[-1,  0], [ 1,  0], [ 2,  0]], // oooo
-		[[ 0, -1], [ 0,  1], [ 0,  2]]
+		[[ 0,  0], [-1,  0], [ 1,  0], [ 2,  0]], // oooo
+		[[ 0,  0], [ 0, -1], [ 0,  1], [ 0,  2]]
 	]
 ]
 
 const nextPiece = () => {
 	return {
-		position: { x: 2, y: 2 },
+		x:        2, 
+		y:        2,
 		rotation: 0,
-		type: rnd(len(pieceTypes))
+		type:     rnd(len(pieceTypes))
 	}
 }
 
@@ -63,8 +64,6 @@ const ctx    = canvas.getContext('2d')
 
 const newPos = (i, j) => [5 + 40*j, 5 + 40*i, 35, 35]
 
-const inLimits = (i, j) => (i >= 0 && j >= 0 && i < game.rows && j < game.cols)
-
 const fillBoard = (a, fn, n, max) => {
 	if (n >= 0) {
 		const i = n % max
@@ -78,14 +77,12 @@ const fillBoard = (a, fn, n, max) => {
 	}
 }
 
-const relIdx = (i, j) => k => { return { x: k[0] + i, y: k[1] + j} }
+// return an object with coordinates (x, y) adjusted for a base (i, j)
+const adjIdx = (i, j) => k => { return { x: k[0] + i, y: k[1] + j} }
 
 const fillCurPiece = (p) => {
-	const i      = p.position.x; // position of pivot
-	const j      = p.position.y;
-	const t      = p.type;       // piece type
-	const r      = p.rotation    // piece rotation
-	const relPos = map(concat(pieceTypes[t][r], [[0, 0]]), relIdx(i, j))
+	const piece  = pieceTypes[p.type][p.rotation]
+	const relPos = map(piece, adjIdx(p.x, p.y))
 	
 	each(relPos, (p, i) => ctx.fillRect(...newPos(p.x, p.y)))
 }
@@ -109,16 +106,28 @@ const drawFrame = () => {
 const updateScore = () => score.textContent = (state.score + 'pt')
 
 // Controller
-const nextState = (action) => {
+const inLimits = (i, j) => (i >= 0 && j >= 0 && i < game.rows && j < game.cols)
+
+const colision = (i, j) => (inLimits(i, j)) //&& !hitBlock(i, j))
+
+const nextState = (act) => {
 	const p = state.currentPiece;
-	if (action == TURN) {
+
+	if (act == TURN) {
 		state.currentPiece.rotation = (p.rotation + 1) % len(pieceTypes[p.type])
 	} else {
-		var x = state.currentPiece.position.x + action.x
-		var y = state.currentPiece.position.y + action.y
-		
-		if (inLimits(x, y)) {
-			state.currentPiece.position = { x: x, y: y }
+		const piece     = pieceTypes[p.type][p.rotation]
+		const relPos    = map(piece, adjIdx(p.x, p.y))
+		const newRelPos = map(piece, adjIdx(p.x + act.x, p.y + act.y))
+
+		const n         = len(newRelPos)
+		const m         = len(filter(newRelPos, r => colision(r.x, r.y)))
+
+		if (n == m) {
+			state.currentPiece.x = i
+			state.currentPiece.y = j
+		} else {
+			afterColision(state.board, relPos)
 		}
 	}
 }
