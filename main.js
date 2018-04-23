@@ -101,8 +101,22 @@ const killPiece = (i, j) => (state.board[i][j] = true)
 
 const endGame = () => (state.currentPiece.x == 2 && state.currentPiece.y == 2)
 
+const isTrue    = (x) => (x)
+
+//const removeEmpty = ([x, ...xs]) => def(x) 
+//	? [x, ...removeEmpty(xs)]
+//	: []
+
 const cleanBoard = () => {
-	// TODO: create a new board removing the array full true
+	// state.board = map(state.board, row => len(filter(row, isTrue)) == game.cols ? [] : row )
+	
+	// then remove all empty
+	// state.board = map(state.board, )
+	
+	// do something more functional
+	//while (len(state.board) != game.rows) {
+	//	pushFront(state.board, array(game.cols, false))
+	//}
 }
 
 const onColision  = (curPos) => {
