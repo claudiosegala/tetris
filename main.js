@@ -37,9 +37,10 @@ const nextPiece = () => {
 }
 
 const initState = () => ({
+	over:  false,
 	score: 0,
 	board: matrix(ROWS, COLS),
-	currentPiece: nextPiece()
+	piece: nextPiece()
 })
 
 let state = initState()
@@ -64,7 +65,7 @@ const drawBoard = (a, fn, n, max) => {
 			ctx.fillRect(...newPos(i, j))
 		}
 
-		fillBoard(a, fn, n-1, max)
+		drawBoard(a, fn, n-1, max)
 	}
 }
 
@@ -78,16 +79,23 @@ const drawPiece = (p) => {
 const drawFrame = () => {
 	const board = flatten(state.board)
 
-	ctx.fillStyle = "rgb(51, 51, 51)"    // clean board
-	drawBoard(board, x => true, SIZE, COLS) 
+	if (state.over) {
+		state.over = false
 
-	ctx.fillStyle = "rgb(255, 255, 255)" // draw the dead pieces
-	drawBoard(board, x => x, SIZE, COLS)
+		ctx.fillStyle = "rgb(255, 102, 102)"    // red all board
+		drawBoard(board, x => true, SIZE, COLS) 
+	} else {
+		ctx.fillStyle = "rgb(51, 51, 51)"    // clean board
+		drawBoard(board, x => true, SIZE, COLS) 
 
-	ctx.fillStyle = "rgb(127, 255, 127)" // draw current pieces
-	drawPiece(state.currentPiece)
+		ctx.fillStyle = "rgb(255, 255, 255)" // draw the dead pieces
+		drawBoard(board, x => x, SIZE, COLS)
 
-	updScore()
+		ctx.fillStyle = "rgb(127, 255, 127)" // draw current pieces
+		drawPiece(state.piece)
+
+		updScore()
+	}
 }
 
 // Controller
@@ -97,11 +105,11 @@ const hitFloor  = (i, j) => (i < 0 || i >= ROWS)
 
 const inLimits  = (i, j) => (j >= 0 && j < COLS && i >= 0 && i < ROWS)
 
-const hitBlock  = (i, j, act) => (inLimits(i, j) && state.board[i][j])
+const hitBlock  = (i, j) => (inLimits(i, j) && state.board[i][j])
 
 const killPiece = (i, j) => (state.board[i][j] = true)
 
-const endGame   = () => (state.currentPiece.x == 2 && state.currentPiece.y == 2)
+const endGame   = () => (state.piece.x == 2 && state.piece.y == 2)
 
 const isTrue    = (x) => (x)
 
@@ -125,18 +133,19 @@ const clnBoard  = () => {
 	}
 }
 
-const onColision  = (curPos) => {
+const onHit     = (pos) => {
 	if (!endGame()) {
-		each(curPos, k => killPiece(k.x, k.y))
+		each(pos, k => killPiece(k.x, k.y))
 		clnBoard()
-		state.currentPiece = nextPiece()	
+		state.piece = nextPiece()	
 	} else {
-		drawDeath()
+		state = initState()
+		state.over = true
 	}
 }
 
 const nextState = (act) => {
-	const p = state.currentPiece;
+	const p = state.piece;
 	const cntWall   = (pos) => len(filter(pos, k => hitWall(k.x, k.y)))
 	const cntFloor  = (pos) => len(filter(pos, k => hitFloor(k.x, k.y)))
 	const cntBlock  = (pos) => len(filter(pos, k => hitBlock(k.x, k.y)))
@@ -151,7 +160,7 @@ const nextState = (act) => {
 		const hBlock  = cntBlock(nxtPos)
 
 		if (!hBlock && !hFloor && !hWall){
-			state.currentPiece.rotation = nextRot;
+			state.piece.rotation = nextRot;
 		}
 	} else {
 		const newX    = p.x + act.x
@@ -165,15 +174,15 @@ const nextState = (act) => {
 		const hBlock  = cntBlock(nxtPos)
 
 		if (hFloor || (hBlock && act == DOWN)) { 
-			onColision(curPos) 
+			onHit(curPos) 
 		} else if (!hWall && !hBlock){ 
-			state.currentPiece.x = newX 
-			state.currentPiece.y = newY 
+			state.piece.x = newX 
+			state.piece.y = newY 
 		}
 	}
 }
 
-const changeState = (event) => {
+const updState  = (event) => {
 	switch (event.key) {
 		case 'a': case 'A': case 'ArrowLeft':  nextState(LEFT); break;
 		case 's': case 'S': case 'ArrowDown':  nextState(DOWN); break;
@@ -182,8 +191,8 @@ const changeState = (event) => {
 	}
 }
 
-const init = () => {
-	window.addEventListener('keydown', changeState)
+const init      = () => {
+	window.addEventListener('keydown', updState)
 
 	const refreshId = window.setInterval(drawFrame, 100)
 	const gravityId = window.setInterval(() => nextState(DOWN), 1000)
