@@ -6,13 +6,14 @@ const WHT = "rgb(255, 255, 255)"
 const BLK = "rgb(51, 51, 51)"
 const GRN = "rgb(127, 255, 127)"
 
-const LEFT  = { x:  0, y: -1 }
-const DOWN  = { x:  1, y:  0 }
-const RIGHT = { x:  0, y:  1 }
-const TURN  = {}
-const ROWS  = 16
-const COLS  = 8
-const SIZE  = (ROWS * COLS)
+const LEFT  = { x:  0, y: -1 }  // moves left
+const DOWN  = { x:  1, y:  0 }  // moves down
+const RIGHT = { x:  0, y:  1 }  // moves right
+const TURN  = {}                // do not moves
+const ROWS  = 16                // qnt of rows
+const COLS  = 8                 // qnt of columns
+const SIZE  = (ROWS * COLS)     // qnt of spaces in board
+const RATE  = 100               // refresh rate of the game
 
 const pieceTypes = [
 	[
@@ -47,6 +48,7 @@ const initState = () => ({
 	over:  false,
 	score: 0,
 	board: matrix(ROWS, COLS),
+	speed: 1000,
 	piece: nextPiece(),
 	nxtPiece: nextPiece()
 })
@@ -211,8 +213,8 @@ const updState  = (event) => {
 const init      = () => {
 	window.addEventListener('keydown', updState)
 
-	const refreshId = window.setInterval(drawFrame, 100)
-	const gravityId = window.setInterval(() => nextState(DOWN), 1000)
+	const refreshId = window.setInterval(drawFrame, RATE)
+	const gravityId = window.setInterval(() => nextState(DOWN), state.speed)
 }
 
 init()
