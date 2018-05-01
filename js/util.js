@@ -1,5 +1,10 @@
-// Util
-const rnd = (n) => Math.floor(Math.random() * n);
+// tautology
+const tau = () => true
+
+// itself
+const its = (x) => x
+
+const rnd = (n) => Math.floor(Math.random() * n)
 
 const abs = (x) => x > 0 ? x : -x
 
