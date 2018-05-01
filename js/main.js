@@ -47,7 +47,8 @@ const initState = () => ({
 	over:  false,
 	score: 0,
 	board: matrix(ROWS, COLS),
-	piece: nextPiece()
+	piece: nextPiece(),
+	nxtPiece: nextPiece()
 })
 
 let state = initState()
@@ -153,7 +154,8 @@ const onHit     = (pos) => {
 	if (!endGame()) {
 		each(pos, k => killPiece(k.x, k.y))
 		clnBoard()
-		state.piece = nextPiece()
+		state.piece = state.nxtPiece
+		state.nxtPiece = nextPiece()
 	} else {
 		state = initState()
 		state.over = true
