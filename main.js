@@ -1,14 +1,11 @@
 // Model
-const game  = {
-	rows:  16,
-	cols:   8,
-	size: 127
-} 
-
 const LEFT  = { x:  0, y: -1 }
 const DOWN  = { x:  1, y:  0 }
 const RIGHT = { x:  0, y:  1 }
 const TURN  = {}
+const ROWS  = 16
+const COLS  = 8
+const SIZE  = (ROWS * COLS) - 1
 
 const pieceTypes = [
 	[
@@ -39,24 +36,26 @@ const nextPiece = () => {
 	}
 }
 
-let state = {
+const initState = () => ({
 	score: 0,
-	board: matrix(game.rows, game.cols),
+	board: matrix(ROWS, COLS),
 	currentPiece: nextPiece()
-}
+})
+
+let state = initState()
 
 // View
 const score  = document.getElementById('score')
 const canvas = document.getElementById('board')
 const ctx    = canvas.getContext('2d')
 
-const updateScore = () => (score.textContent = (state.score + 'pt'))
+const updScore  = () => (score.textContent = (state.score + 'pt'))
 
-const newPos = (i, j) => ([5 + 40*j, 5 + 40*i, 35, 35])
+const newPos    = (i, j) => ([5 + 40*j, 5 + 40*i, 35, 35])
 
-const adjIdx = (i, j) => k => ({ x: k.x + i, y: k.y + j })
+const adjIdx    = (i, j) => k => ({ x: k.x + i, y: k.y + j })
 
-const fillBoard = (a, fn, n, max) => {
+const drawBoard = (a, fn, n, max) => {
 	if (n >= 0) {
 		const i = div(n, max)
 		const j = n % max
@@ -69,7 +68,7 @@ const fillBoard = (a, fn, n, max) => {
 	}
 }
 
-const fillCurPiece = (p) => {
+const drawPiece = (p) => {
 	const piece  = pieceTypes[p.type][p.rotation]
 	const relPos = map(piece, adjIdx(p.x, p.y))
 	
@@ -79,26 +78,27 @@ const fillCurPiece = (p) => {
 const drawFrame = () => {
 	const board = flatten(state.board)
 
-	// clean board
-	ctx.fillStyle = "rgb(51, 51, 51)"
-	fillBoard(board, x => true, game.size, game.cols)
+	ctx.fillStyle = "rgb(51, 51, 51)"    // clean board
+	drawBoard(board, x => true, SIZE, COLS) 
 
-	// draw the dead pieces
-	ctx.fillStyle = "rgb(255, 255, 255)"
-	fillBoard(board, x => x, game.size, game.cols)
+	ctx.fillStyle = "rgb(255, 255, 255)" // draw the dead pieces
+	drawBoard(board, x => x, SIZE, COLS)
 
-	// draw current pieces
-	ctx.fillStyle = "rgb(127, 255, 127)"
-	fillCurPiece(state.currentPiece)
+	ctx.fillStyle = "rgb(127, 255, 127)" // draw current pieces
+	drawPiece(state.currentPiece)
 
-	updateScore()
+	updScore()
 }
 
 // Controller
-const hitWall   = (i, j) => (j < 0 || j >= game.cols)
-const hitFloor  = (i, j) => (i < 0 || i >= game.rows)
-const inLimits  = (i, j) => (j >= 0 && j < game.cols && i >= 0 && i < game.rows)
+const hitWall   = (i, j) => (j < 0 || j >= COLS)
+
+const hitFloor  = (i, j) => (i < 0 || i >= ROWS)
+
+const inLimits  = (i, j) => (j >= 0 && j < COLS && i >= 0 && i < ROWS)
+
 const hitBlock  = (i, j, act) => (inLimits(i, j) && state.board[i][j])
+
 const killPiece = (i, j) => (state.board[i][j] = true)
 
 const endGame   = () => (state.currentPiece.x == 2 && state.currentPiece.y == 2)
@@ -106,16 +106,16 @@ const endGame   = () => (state.currentPiece.x == 2 && state.currentPiece.y == 2)
 const isTrue    = (x) => (x)
 
 const chckRows  = ([x, ...xs]) => def(x) 
-	? len(filter(x, isTrue)) == game.cols
+	? len(filter(x, isTrue)) == COLS
 		? [...chckRows(xs)]
 		: [x, ...chckRows(xs)]
 	: []
 
-const cleanBoard = () => {
+const clnBoard  = () => {
 	state.board = chckRows(state.board)
 	
 	const curLen = len(state.board)
-	const m = matrix(game.rows - curLen, game.cols)
+	const m = matrix(ROWS - curLen, COLS)
 	const n = len(m);
 	
 	state.board = concat(m, state.board)
@@ -128,10 +128,10 @@ const cleanBoard = () => {
 const onColision  = (curPos) => {
 	if (!endGame()) {
 		each(curPos, k => killPiece(k.x, k.y))
-		cleanBoard()
+		clnBoard()
 		state.currentPiece = nextPiece()	
 	} else {
-		window.location = "gameover.html"
+		drawDeath()
 	}
 }
 
@@ -141,7 +141,6 @@ const nextState = (act) => {
 	const cntFloor  = (pos) => len(filter(pos, k => hitFloor(k.x, k.y)))
 	const cntBlock  = (pos) => len(filter(pos, k => hitBlock(k.x, k.y)))
 
-
 	if (act == TURN) {
 		const nextRot = (p.rotation + 1) % len(pieceTypes[p.type]);
 		const piece   = pieceTypes[p.type][nextRot]
@@ -150,7 +149,7 @@ const nextState = (act) => {
 		const hWall   = cntWall(nxtPos)
 		const hFloor  = cntFloor(nxtPos)
 		const hBlock  = cntBlock(nxtPos)
-		console.log(hBlock, hFloor, hWall)
+
 		if (!hBlock && !hFloor && !hWall){
 			state.currentPiece.rotation = nextRot;
 		}
