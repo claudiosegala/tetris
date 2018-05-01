@@ -90,6 +90,8 @@ const drawFrame = () => {
 	// draw current pieces
 	ctx.fillStyle = "rgb(127, 255, 127)"
 	fillCurPiece(state.currentPiece)
+
+	updateScore()
 }
 
 // Controller
@@ -99,24 +101,28 @@ const inLimits  = (i, j) => (j >= 0 && j < game.cols && i >= 0 && i < game.rows)
 const hitBlock  = (i, j, act) => (inLimits(i, j) && state.board[i][j])
 const killPiece = (i, j) => (state.board[i][j] = true)
 
-const endGame = () => (state.currentPiece.x == 2 && state.currentPiece.y == 2)
+const endGame   = () => (state.currentPiece.x == 2 && state.currentPiece.y == 2)
 
 const isTrue    = (x) => (x)
 
-//const removeEmpty = ([x, ...xs]) => def(x) 
-//	? [x, ...removeEmpty(xs)]
-//	: []
+const chckRows  = ([x, ...xs]) => def(x) 
+	? len(filter(x, isTrue)) == game.cols
+		? [...chckRows(xs)]
+		: [x, ...chckRows(xs)]
+	: []
 
 const cleanBoard = () => {
-	// state.board = map(state.board, row => len(filter(row, isTrue)) == game.cols ? [] : row )
+	state.board = chckRows(state.board)
 	
-	// then remove all empty
-	// state.board = map(state.board, )
+	const curLen = len(state.board)
+	const m = matrix(game.rows - curLen, game.cols)
+	const n = len(m);
 	
-	// do something more functional
-	//while (len(state.board) != game.rows) {
-	//	pushFront(state.board, array(game.cols, false))
-	//}
+	state.board = concat(m, state.board)
+
+	if (n > 0) {
+		state.score += n;
+	}
 }
 
 const onColision  = (curPos) => {
@@ -178,13 +184,9 @@ const changeState = (event) => {
 }
 
 const init = () => {
-	// Start listening for keystrokes
 	window.addEventListener('keydown', changeState)
 
-	// Start refreshing the canvas every 100ms
 	const refreshId = window.setInterval(drawFrame, 100)
-
-	// Current Piece goes down every 1s
 	const gravityId = window.setInterval(() => nextState(DOWN), 1000)
 }
 
