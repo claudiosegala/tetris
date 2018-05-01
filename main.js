@@ -131,25 +131,39 @@ const onColision  = (curPos) => {
 
 const nextState = (act) => {
 	const p = state.currentPiece;
+	const cntWall   = (pos) => len(filter(pos, k => hitWall(k.x, k.y)))
+	const cntFloor  = (pos) => len(filter(pos, k => hitFloor(k.x, k.y)))
+	const cntBlock  = (pos) => len(filter(pos, k => hitBlock(k.x, k.y)))
+
 
 	if (act == TURN) {
-		state.currentPiece.rotation = (p.rotation + 1) % len(pieceTypes[p.type])
+		const nextRot = (p.rotation + 1) % len(pieceTypes[p.type]);
+		const piece   = pieceTypes[p.type][nextRot]
+		const nxtPos  = map(piece, adjIdx(p.x, p.y))
+
+		const hWall   = cntWall(nxtPos)
+		const hFloor  = cntFloor(nxtPos)
+		const hBlock  = cntBlock(nxtPos)
+		console.log(hBlock, hFloor, hWall)
+		if (!hBlock && !hFloor && !hWall){
+			state.currentPiece.rotation = nextRot;
+		}
 	} else {
-		const newX   = p.x + act.x
-		const newY   = p.y + act.y
-		const piece  = pieceTypes[p.type][p.rotation]
-		const curPos = map(piece, adjIdx(p.x, p.y))
-		const nxtPos = map(piece, adjIdx(newX, newY))
+		const newX    = p.x + act.x
+		const newY    = p.y + act.y
+		const piece   = pieceTypes[p.type][p.rotation]
+		const curPos  = map(piece, adjIdx(p.x, p.y))
+		const nxtPos  = map(piece, adjIdx(newX, newY))
 
-		const hWall  = len(filter(nxtPos, k => hitWall(k.x, k.y)))
-		const hFloor = len(filter(nxtPos, k => hitFloor(k.x, k.y)))
-		const hBlock = len(filter(nxtPos, k => hitBlock(k.x, k.y)))
+		const hWall   = cntWall(nxtPos)
+		const hFloor  = cntFloor(nxtPos)
+		const hBlock  = cntBlock(nxtPos)
 
-		if (hFloor || hBlock) {
-			onColision(curPos)
-		} else if (!hWall){
-			state.currentPiece.x = newX
-			state.currentPiece.y = newY
+		if (hFloor || (hBlock && act == DOWN)) { 
+			onColision(curPos) 
+		} else if (!hWall && !hBlock){ 
+			state.currentPiece.x = newX 
+			state.currentPiece.y = newY 
 		}
 	}
 }
@@ -163,7 +177,6 @@ const changeState = (event) => {
 	}
 }
 
-// Setup
 const init = () => {
 	// Start listening for keystrokes
 	window.addEventListener('keydown', changeState)
