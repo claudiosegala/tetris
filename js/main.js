@@ -12,7 +12,7 @@ const RIGHT = { x:  0, y:  1 }
 const TURN  = {}
 const ROWS  = 16
 const COLS  = 8
-const SIZE  = (ROWS * COLS) - 1
+const SIZE  = (ROWS * COLS)
 
 const pieceTypes = [
 	[
@@ -63,16 +63,16 @@ const newPos    = (i, j) => ([5 + 40*j, 5 + 40*i, 35, 35])
 
 const adjIdx    = (i, j) => k => ({ x: k.x + i, y: k.y + j })
 
-const drawBoard = (a, fn, n, max) => {
-	if (n >= 0) {
-		const i = div(n, max)
-		const j = n % max
+const drawBoard = (a, n = 0) => {
+	if (n < SIZE) {
+		const i = div(n, COLS)
+		const j = n % COLS
 
-		if (fn(a[n])) {
+		if (a[n]) {
 			ctx.fillRect(...newPos(i, j))
 		}
 
-		drawBoard(a, fn, n-1, max)
+		drawBoard(a, n+1)
 	}
 }
 
@@ -84,19 +84,20 @@ const drawPiece = (p) => {
 }
 
 const drawFrame = () => {
+	const field = flatten(matrix(ROWS, COLS, true))
 	const board = flatten(state.board)
 
 	if (state.over) {
 		state.over = false
 
 		ctx.fillStyle = RED // red all board
-		drawBoard(board, tau, SIZE, COLS) 
+		drawBoard(field) 
 	} else {
 		ctx.fillStyle = BLK // clean board
-		drawBoard(board, tau, SIZE, COLS)
+		drawBoard(field)
 
 		ctx.fillStyle = WHT // draw the dead pieces
-		drawBoard(board, its, SIZE, COLS)
+		drawBoard(board)
 
 		ctx.fillStyle = GRN // draw current pieces
 		drawPiece(state.piece)
