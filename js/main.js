@@ -50,7 +50,7 @@ const score  = document.getElementById('score')
 const canvas = document.getElementById('board')
 const ctx    = canvas.getContext('2d')
 
-const updScore  = () => (score.textContent = (state.score + 'pt'))
+const updScore  = () => (score.textContent = (state.score + ' pt'))
 
 const newPos    = (i, j) => ([5 + 40*j, 5 + 40*i, 35, 35])
 
