@@ -43,14 +43,12 @@ const pieceTypes = [
 	],
 ]
 
-const nextPiece = () => {
-	return {
-		x:        2, 
-		y:        2,
-		rotation: 0,
-		type:     rnd(len(pieceTypes))
-	}
-}
+const nextPiece = () => ({
+	x:        2, 
+	y:        2,
+	rotation: 0,
+	type:     rnd(len(pieceTypes))
+})
 
 const initState = () => ({
 	over:  false,
@@ -64,9 +62,9 @@ const initState = () => ({
 let state = initState()
 
 // View
-const score  = document.getElementById('score')
-const canvas = document.getElementById('board')
-const ctx    = canvas.getContext('2d')
+const score     = document.getElementById('score')
+const canvas    = document.getElementById('board')
+const ctx       = canvas.getContext('2d')
 
 const updScore  = () => (score.textContent = (state.score + ' pt'))
 
@@ -139,13 +137,11 @@ const endGame   = () => (state.piece.x == 2 && state.piece.y == 2)
 
 const isTrue    = (x) => (x)
 
-const chckRows  = ([x, ...xs]) => {
-  if (def(x)) {
-  	return len(filter(x, isTrue)) == COLS ? [...chckRows(xs)] : [x, ...chckRows(xs)]
-	}
-
-	return []
-}
+const chckRows  = ([x, ...xs]) => def(x)
+	? len(filter(x, isTrue)) == COLS 
+		? [...chckRows(xs)] 
+		: [x, ...chckRows(xs)]
+	: []
 
 const clnBoard  = () => {
 	state.board = chckRows(state.board)
@@ -173,13 +169,11 @@ const onHit     = (pos) => {
 	}
 }
 
-const getHits   = (pos) => {
-	return {
-		wall:  cntWall(pos),
-		floor: cntFloor(pos),
-		block: cntBlock(pos)
-	}
-}
+const getHits   = (pos) => ({
+	wall:  cntWall(pos),
+	floor: cntFloor(pos),
+	block: cntBlock(pos)
+})
 
 const nextState = (act) => {
 	const p = state.piece
