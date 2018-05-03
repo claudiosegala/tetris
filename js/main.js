@@ -1,5 +1,3 @@
-/*jshint esversion: 6 */
-
 // Model
 const RED = "rgb(255, 102, 102)"
 const WHT = "rgb(255, 255, 255)"
