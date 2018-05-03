@@ -17,22 +17,32 @@ const RATE  = 100               // refresh rate of the game
 
 const pieceTypes = [
 	[
-		[{ x: 0,y: 0} , { x: 0, y:-1 }, { x:-1, y: 0 }, { x: 1, y: 0 }],
-		[{ x: 0,y: 0} , { x: 0, y:-1 }, { x: 0, y: 1 }, { x: 1, y: 0 }], //  o
-		[{ x: 0,y: 0} , { x:-1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 0 }], // ooo
-		[{ x: 0,y: 0} , { x: 0, y: 1 }, { x: 0, y:-1 }, { x:-1, y: 0 }]
-	], [                                                                 // oo
-		[{ x: 0,y: 0} , { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }]  // oo
+		[{ x: 0, y: 0} , { x: 0, y:-1 }, { x:-1, y: 0 }, { x: 1, y: 0 }],
+		[{ x: 0, y: 0} , { x: 0, y:-1 }, { x: 0, y: 1 }, { x: 1, y: 0 }], //  o
+		[{ x: 0, y: 0} , { x:-1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 0 }], // ooo
+		[{ x: 0, y: 0} , { x: 0, y: 1 }, { x: 0, y:-1 }, { x:-1, y: 0 }]
+	], [                                                                     // oo
+		[{ x: 0, y: 0} , { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }]  // oo
 	], [
-		[{ x: 0,y: 0} , { x:-1, y: 0 }, { x:-1, y:-1 }, { x: 0, y: 1 }], // oo
-		[{ x: 0,y: 0} , { x: 1, y: 0 }, { x:-1, y: 1 }, { x: 0, y: 1 }]  //  oo
+		[{ x: 0, y: 0} , { x:-1, y: 0 }, { x:-1, y:-1 }, { x: 0, y: 1 }], // oo
+		[{ x: 0, y: 0} , { x: 1, y: 0 }, { x:-1, y: 1 }, { x: 0, y: 1 }]  //  oo
 	], [
-		[{ x: 0,y: 0} , { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }], //  oo
-		[{ x: 0,y: 0} , { x:-1, y: 0 }, { x: 0, y: 1 }, { x:-1, y:-1 }]  // oo
+		[{ x: 0, y: 0} , { x: 0, y:-1 }, { x: 1, y: 0 }, { x: 1, y: 1 }], //  oo
+		[{ x: 0, y: 0} , { x:-1, y:-1 }, { x: 0, y:-1 }, { x: 1, y: 0 }]  // oo
 	], [
-		[{ x: 0,y: 0} , { x:-1, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }], // oooo
-		[{ x: 0,y: 0} , { x: 0, y:-1 }, { x: 0, y: 1 }, { x: 0, y: 2 }]
-	]
+		[{ x: 0, y: 0} , { x:-1, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }], // oooo
+		[{ x: 0, y: 0} , { x: 0, y:-1 }, { x: 0, y: 1 }, { x: 0, y: 2 }]
+	], [
+		[{ x: 0, y: 0} , { x: 0, y:-1 }, { x:-1, y: 0 }, { x: 1, y: 0 }], // o
+		[{ x: 0, y: 0} , { x: 0, y:-1 }, { x: 0, y: 1 }, { x: 1, y: 0 }], // o
+		[{ x: 0, y: 0} , { x:-1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 0 }], // oo
+		[{ x: 0, y: 0} , { x: 0, y: 1 }, { x: 0, y:-1 }, { x:-1, y: 0 }]
+	], [
+		[{ x: 0, y: 0} , { x: 0, y:-1 }, { x:-1, y: 0 }, { x: 1, y: 0 }], //  o
+		[{ x: 0, y: 0} , { x: 0, y:-1 }, { x: 0, y: 1 }, { x: 1, y: 0 }], //  o
+		[{ x: 0, y: 0} , { x:-1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 0 }], // oo
+		[{ x: 0, y: 0} , { x: 0, y: 1 }, { x: 0, y:-1 }, { x:-1, y: 0 }]
+	],
 ]
 
 const nextPiece = () => {
@@ -66,6 +76,8 @@ const newPos    = (i, j) => ([5 + 40*j, 5 + 40*i, 35, 35])
 
 const adjIdx    = (i, j) => k => ({ x: k.x + i, y: k.y + j })
 
+const nextPos   = (t, r, x, y) => (map(pieceTypes[t][r], adjIdx(x, y)))
+
 const drawBoard = (a, n = 0) => {
 	if (n < SIZE) {
 		const i = div(n, COLS)
@@ -80,8 +92,7 @@ const drawBoard = (a, n = 0) => {
 }
 
 const drawPiece = (p) => {
-	const piece  = pieceTypes[p.type][p.rotation]
-	const relPos = map(piece, adjIdx(p.x, p.y))
+	const relPos = nextPos(p.type, p.rotation, p.x, p.y)
 	
 	each(relPos, (p, i) => ctx.fillRect(...newPos(p.x, p.y)))
 }
@@ -177,8 +188,7 @@ const nextState = (act) => {
 
 	if (act == TURN) {
 		const nextRot = (p.rotation + 1) % len(pieceTypes[p.type])
-		const piece   = pieceTypes[p.type][nextRot]
-		const nxtPos  = map(piece, adjIdx(p.x, p.y))
+		const nxtPos  = nextPos(p.type, nextRot, p.x, p.y)
 		const hits    = getHits(nxtPos)
 
 		if (!hits.block && !hits.floor && !hits.wall){
@@ -187,9 +197,8 @@ const nextState = (act) => {
 	} else {
 		const newX    = p.x + act.x
 		const newY    = p.y + act.y
-		const piece   = pieceTypes[p.type][p.rotation]
-		const curPos  = map(piece, adjIdx(p.x, p.y))
-		const nxtPos  = map(piece, adjIdx(newX, newY))
+		const curPos  = nextPos(p.type, p.rotation, p.x, p.y)
+		const nxtPos  = nextPos(p.type, p.rotation, newX, newY)
 		const hits    = getHits(nxtPos)
 
 		if (hits.floor || (hits.block && act == DOWN)) {
