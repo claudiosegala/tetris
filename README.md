@@ -7,9 +7,9 @@ Not gonna teach, you fool. Look up on Google.
 
 ## Next Inprovements
 
-[ ] Keep scores
-[ ] Show next piece
-[ ] Make it mobile friendly
+* [ ] Keep scores  
+* [ ] Show next piece  
+* [ ] Make it mobile friendly  
 
 ## Want to help?
 Send me an email and lets discuss.
