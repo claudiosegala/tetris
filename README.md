@@ -5,7 +5,7 @@ OBS: This version doens't have score yet.
 ## How to play
 Not gonna teach, you fool. Look up on Google.
 
-## Next Inprovements
+## Next Improvements
 
 * [ ] Keep scores  
 * [ ] Show next piece  
