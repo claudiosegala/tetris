@@ -16,3 +16,5 @@ const div = (x, y) => snl(x) * snl(y) * Math.floor(abs(x)/abs(y))
 const sumVector = ([x, ...xs], [y, ...ys]) => def(x) && def(y)
 	? [x + y, ...sumVector(xs, ys)]
 	: [];
+
+const max = (x, y) => x > y ? x : y
