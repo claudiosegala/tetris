@@ -4,11 +4,5 @@ A simple, 8-bit inspired, tetris. Excelent for people looking for a break, [play
 ## How to play
 Not gonna teach, you fool. Look up on Google. Just kidding, use arrow keys or AWSD or awsd, whatever man.
 
-## Next Improvements
-
-* [ ] Keep scores  
-* [ ] Show next piece  
-* [ ] Make it mobile friendly  
-
 ## Want to help?
 Send me an email and lets discuss.
