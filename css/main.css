@@ -18,16 +18,32 @@ body {
 
 #game {
 	display:         flex;
-	flex-direction:  column;
+	margin-top:      30px;
 }
 
 #score {
-	margin:          10px;
+	display:         flex;
+	justify-content: center;
+	margin-top:      0px;
+	margin-bottom:   10px;
 	font-family:     BitFont, Arial;
 	color:           #dfdfdf;
 }
 
+#game-board {
+	margin-right: 7px;
+}
+
+#game-aux-board {
+	margin-left: 7px;
+
+}
+
 #board {
+	background:      #333333;
+}
+
+#board-aux {
 	background:      #333333;
 }
 
