@@ -15,7 +15,7 @@ const ROWS  = 16                // qnt of rows
 const COLS  = 8                 // qnt of columns
 const SIZE  = (ROWS * COLS)     // qnt of spaces in board
 const RATE  = 100               // refresh rate of the game
-const FALL  = 1000              // gravity speed
+const FALL  = 800               // gravity speed
 
 const pieceTypes = [
 	[                                                                     // oo
@@ -73,7 +73,7 @@ const setGravity = (onStart = false) => {
 const incGravity = () => {
 	if (state.score >= state.level) {
 		state.level++;
-		state.speed = max(state.speed - 900, RATE);
+		state.speed = max(state.speed - 60, RATE);
 		state.gravityId = setGravity();
 	}
 }
