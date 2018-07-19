@@ -13,6 +13,8 @@ const RIGHT = { x:  0, y:  1 }  // moves right
 const TURN  = {}                // do not moves
 const ROWS  = 16                // qnt of rows
 const COLS  = 8                 // qnt of columns
+const AUXR  = 5                 // qnt of rows in aux board
+const AUXC  = 5                 // qnt of cols in aux board
 const SIZE  = (ROWS * COLS)     // qnt of spaces in board
 const RATE  = 100               // refresh rate of the game
 const FALL  = 800               // gravity speed
@@ -102,8 +104,12 @@ const initState = () => ({
 
 // View
 const score = document.getElementById('score')
-const canvas = document.getElementById('board')
-const ctx = canvas.getContext('2d')
+const boardCanvas = document.getElementById('board')
+const auxBoardCanvas = document.getElementById('board-aux')
+const ctx = {
+	board: boardCanvas.getContext('2d'),
+	auxBoard: auxBoardCanvas.getContext('2d')
+}
 
 const updScore = () => {
 	score.textContent = (state.score + ' pt')
@@ -123,37 +129,63 @@ const drawBoard = (a, n = 0) => {
 		const j = n % COLS
 
 		if (a[n]) {
-			ctx.fillRect(...newPos(i, j))
+			ctx.board.fillRect(...newPos(i, j))
 		}
 
 		drawBoard(a, n+1)
 	}
 }
 
+const drawAuxBoard = (a, n = 0) => {
+	if (n < SIZE) {
+		const i = div(n, AUXC)
+		const j = n % AUXC
+
+		if (a[n]) {
+			ctx.auxBoard.fillRect(...newPos(i, j))
+		}
+
+		drawAuxBoard(a, n+1)
+	}
+}
+
 const drawPiece = (p) => {
 	const relPos = nextPos(p.type, p.rotation, p.x, p.y)
 	
-	each(relPos, (p, i) => ctx.fillRect(...newPos(p.x, p.y)))
+	each(relPos, (np, i) => ctx.board.fillRect(...newPos(np.x, np.y)))
+}
+
+const drawNextPiece = (p) => {
+	const relPos = nextPos(p.type, p.rotation, p.x, p.y)
+	
+	each(relPos, (np, i) => ctx.auxBoard.fillRect(...newPos(np.x, np.y)))
 }
 
 const drawFrame = () => {
 	const field = flatten(matrix(ROWS, COLS, true))
+	const auxField = flatten(matrix(AUXR, AUXC, true))
 	const board = flatten(state.board)
 
 	if (state.over) {
 		state.over = false
 
-		ctx.fillStyle = RED // red all board
+		ctx.board.fillStyle = RED // red all board
 		drawBoard(field) 
 	} else {
-		ctx.fillStyle = BLK // clean board
+		ctx.board.fillStyle = BLK // clean board
 		drawBoard(field)
 
-		ctx.fillStyle = WHT // draw the dead pieces
+		ctx.board.fillStyle = WHT // draw the dead pieces
 		drawBoard(board)
 
-		ctx.fillStyle = GRN // draw current pieces
+		ctx.board.fillStyle = GRN // draw current pieces
 		drawPiece(state.piece)
+
+		ctx.auxBoard.fillStyle = BLK // clean aux board
+		drawAuxBoard(auxField)
+
+		ctx.auxBoard.fillStyle = GRN // draw current pieces
+		drawNextPiece(state.nxtPiece)
 
 		updScore()
 	}
