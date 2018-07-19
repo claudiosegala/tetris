@@ -87,7 +87,17 @@ const initState = () => ({
 	piece: nextPiece(),
 	nxtPiece: nextPiece(),
 	gravityId: setGravity(true),
-	refreshId: setRefreshRate()
+	refreshId: setRefreshRate(),
+	touch: {
+		strt: {
+			x: null,
+			y: null
+		},
+		end: {
+			x: null,
+			y: null
+		}
+	}
 })
 
 // View
@@ -235,6 +245,7 @@ const nextState = (act) => {
 	}
 }
 
+// Events
 const updState = (event) => {
 	switch (event.key) {
 		case 'a': case 'A': case 'ArrowLeft':  nextState(LEFT);  break;
@@ -244,8 +255,54 @@ const updState = (event) => {
 	}
 }
 
-const init = () => {
+const updStateTouch = (x, y) => {
+	if (Math.abs(x) > Math.abs(y)) {
+		if (x > 0) {           /* left swipe */ 
+			nextState(LEFT)
+		} else {               /* right swipe */
+			nextState(RIGHT)
+		}                       
+	} else {
+		if (y > 0) {           /* up swipe */ 
+			nextState(TURN)
+		} else {               /* down swipe */
+			nextState(DOWN)
+		}
+	}
+}
+
+const handleTouchStart = (event) => {
+	state.touch.strt.x = event.touches[0].clientX;
+	state.touch.strt.y = event.touches[0].clientY;
+};
+
+const handleTouchMove = (event) => {
+	if (!state.touch.strt.x || !state.touch.strt.y) {
+		return;
+	}
+
+	state.touch.end.x = event.touches[0].clientX
+	state.touch.end.y = event.touches[0].clientY
+
+	let xDiff = state.touch.strt.x - state.touch.end.x
+	let yDiff = state.touch.strt.y - state.touch.end.y
+
+	updStateTouch(xDiff, yDiff)
+
+	/* reset values */
+	state.touch.strt.x = null
+	state.touch.strt.y = null
+};
+
+const configEnv = () => {
 	window.addEventListener('keydown', updState)
+	window.addEventListener('touchstart', handleTouchStart, false);
+	window.addEventListener('touchmove', handleTouchMove, false);
+}
+
+// Init
+const init = () => {
+	configEnv();
 
 	state = initState();
 }

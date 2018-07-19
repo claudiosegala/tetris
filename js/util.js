@@ -18,3 +18,5 @@ const sumVector = ([x, ...xs], [y, ...ys]) => def(x) && def(y)
 	: [];
 
 const max = (x, y) => x > y ? x : y
+
+const diff = (x, y) => Math.abs(x - y)
